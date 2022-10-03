@@ -128,6 +128,15 @@ void Object3d::CameraMoveVector(XMFLOAT3 move)
 	SetTarget(target_moved);
 }
 
+void Object3d::CameraMoveEyeVector(XMFLOAT3 move)
+{
+	XMFLOAT3 eye_moved = GetEye();
+	eye_moved.x += move.x;
+	eye_moved.y += move.y;
+	eye_moved.z += move.z;
+	SetEye(eye_moved);
+}
+
 void Object3d::InitializeDescriptorHeap()
 {
 	HRESULT result = S_FALSE;
@@ -390,100 +399,116 @@ void Object3d::CreateModel()
 {
 	HRESULT result = S_FALSE;
 
-	std::vector<VertexPosNormalUv> realVertices;
-	// 頂点座標の計算（重複あり）
-	{
-		realVertices.resize((division + 1) * 2);
-		int index = 0;
-		float zValue;
+	VertexPosNormalUv verticesSquare[] = {
+		{{ -5.0f,-5.0f,0.0f},{0,0,1},{0,1}},
+		{{ -5.0f,+5.0f,0.0f},{0,0,1},{0,0}},
+		{{ +5.0f,-5.0f,0.0f},{0,0,1},{1,1}},
+		{{ +5.0f,+5.0f,0.0f},{0,0,1},{1,0}},
+	};
 
-		// 底面
-		zValue = prizmHeight / 2.0f;
-		for (int i = 0; i < division; i++)
-		{
-			XMFLOAT3 vertex;
-			vertex.x = radius * sinf(XM_2PI / division * i);
-			vertex.y = radius * cosf(XM_2PI / division * i);
-			vertex.z = zValue;
-			realVertices[index++].pos = vertex;
-		}
-		realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 底面の中心点
-		// 天面
-		zValue = -prizmHeight / 2.0f;
-		for (int i = 0; i < division; i++)
-		{
-			XMFLOAT3 vertex;
-			vertex.x = radius * sinf(XM_2PI / division * i);
-			vertex.y = radius * cosf(XM_2PI / division * i);
-			vertex.z = zValue;
-			realVertices[index++].pos = vertex;
-		}
-		realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 天面の中心点
-	}
+	std::copy(std::begin(verticesSquare), std::end(verticesSquare), vertices);
 
-	// 頂点座標の計算（重複なし）
-	{
-		int index = 0;
-		// 底面
-		for (int i = 0; i < division; i++)
-		{
-			unsigned short index0 = i + 1;
-			unsigned short index1 = i;
-			unsigned short index2 = division;
+	unsigned short indicesSquare[] = {
+		0,1,2,
+		2,1,3
+	};
 
-			vertices[index++] = realVertices[index0];
-			vertices[index++] = realVertices[index1];
-			vertices[index++] = realVertices[index2]; // 底面の中心点
-		}
-		// 底面の最後の三角形の1番目のインデックスを0に書き換え
-		vertices[index - 3] = realVertices[0];
+	std::copy(std::begin(indicesSquare), std::end(indicesSquare), indices);
 
-		int topStart = division + 1;
-		// 天面
-		for (int i = 0; i < division; i++)
-		{
-			unsigned short index0 = topStart + i;
-			unsigned short index1 = topStart + i + 1;
-			unsigned short index2 = topStart + division;
+	//std::vector<VertexPosNormalUv> realVertices;
+	//// 頂点座標の計算（重複あり）
+	//{
+	//	realVertices.resize((division + 1) * 2);
+	//	int index = 0;
+	//	float zValue;
 
-			vertices[index++] = realVertices[index0];
-			vertices[index++] = realVertices[index1];
-			vertices[index++] = realVertices[index2]; // 天面の中心点
-		}
-		// 天面の最後の三角形の1番目のインデックスを0に書き換え
-		vertices[index - 2] = realVertices[topStart];
+	//	// 底面
+	//	zValue = prizmHeight / 2.0f;
+	//	for (int i = 0; i < division; i++)
+	//	{
+	//		XMFLOAT3 vertex;
+	//		vertex.x = radius * sinf(XM_2PI / division * i);
+	//		vertex.y = radius * cosf(XM_2PI / division * i);
+	//		vertex.z = zValue;
+	//		realVertices[index++].pos = vertex;
+	//	}
+	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 底面の中心点
+	//	// 天面
+	//	zValue = -prizmHeight / 2.0f;
+	//	for (int i = 0; i < division; i++)
+	//	{
+	//		XMFLOAT3 vertex;
+	//		vertex.x = radius * sinf(XM_2PI / division * i);
+	//		vertex.y = radius * cosf(XM_2PI / division * i);
+	//		vertex.z = zValue;
+	//		realVertices[index++].pos = vertex;
+	//	}
+	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 天面の中心点
+	//}
 
-		// 側面
-		for (int i = 0; i < division; i++)
-		{
-			unsigned short index0 = i + 1;
-			unsigned short index1 = topStart + i + 1;
-			unsigned short index2 = i;
-			unsigned short index3 = topStart + i;
+	//// 頂点座標の計算（重複なし）
+	//{
+	//	int index = 0;
+	//	// 底面
+	//	for (int i = 0; i < division; i++)
+	//	{
+	//		unsigned short index0 = i + 1;
+	//		unsigned short index1 = i;
+	//		unsigned short index2 = division;
 
-			if (i == division - 1)
-			{
-				index0 = 0;
-				index1 = topStart;
-			}
+	//		vertices[index++] = realVertices[index0];
+	//		vertices[index++] = realVertices[index1];
+	//		vertices[index++] = realVertices[index2]; // 底面の中心点
+	//	}
+	//	// 底面の最後の三角形の1番目のインデックスを0に書き換え
+	//	vertices[index - 3] = realVertices[0];
 
-			vertices[index++] = realVertices[index0];
-			vertices[index++] = realVertices[index1];
-			vertices[index++] = realVertices[index2];
+	//	int topStart = division + 1;
+	//	// 天面
+	//	for (int i = 0; i < division; i++)
+	//	{
+	//		unsigned short index0 = topStart + i;
+	//		unsigned short index1 = topStart + i + 1;
+	//		unsigned short index2 = topStart + division;
 
-			vertices[index++] = realVertices[index2];
-			vertices[index++] = realVertices[index1];
-			vertices[index++] = realVertices[index3];
-		}
-	}
+	//		vertices[index++] = realVertices[index0];
+	//		vertices[index++] = realVertices[index1];
+	//		vertices[index++] = realVertices[index2]; // 天面の中心点
+	//	}
+	//	// 天面の最後の三角形の1番目のインデックスを0に書き換え
+	//	vertices[index - 2] = realVertices[topStart];
 
-	// 頂点インデックスの設定
-	{
-		for (int i = 0; i < _countof(indices); i++)
-		{
-			indices[i] = i;
-		}
-	}
+	//	// 側面
+	//	for (int i = 0; i < division; i++)
+	//	{
+	//		unsigned short index0 = i + 1;
+	//		unsigned short index1 = topStart + i + 1;
+	//		unsigned short index2 = i;
+	//		unsigned short index3 = topStart + i;
+
+	//		if (i == division - 1)
+	//		{
+	//			index0 = 0;
+	//			index1 = topStart;
+	//		}
+
+	//		vertices[index++] = realVertices[index0];
+	//		vertices[index++] = realVertices[index1];
+	//		vertices[index++] = realVertices[index2];
+
+	//		vertices[index++] = realVertices[index2];
+	//		vertices[index++] = realVertices[index1];
+	//		vertices[index++] = realVertices[index3];
+	//	}
+	//}
+
+	//// 頂点インデックスの設定
+	//{
+	//	for (int i = 0; i < _countof(indices); i++)
+	//	{
+	//		indices[i] = i;
+	//	}
+	//}
 
 	// 法線方向の計算
 	for (int i = 0; i < _countof(indices) / 3; i++)
@@ -566,9 +591,7 @@ void Object3d::CreateModel()
 
 void Object3d::UpdateViewMatrix()
 {
-	// ビュー行列の更新
-	//matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-
+	
 	//視点座標
 	XMVECTOR eyePosition = XMLoadFloat3(&eye);
 	//注視点座標
@@ -591,6 +614,34 @@ void Object3d::UpdateViewMatrix()
 	cameraAxisX = XMVector3Cross(upVector, cameraAxisZ);
 	//ベクトルを正規化
 	cameraAxisX = XMVector3Normalize(cameraAxisX);
+	//カメラのY座標（上方向）
+	XMVECTOR cameraAxisY;
+	//Y軸はZ軸→X軸の外積で求まる
+	cameraAxisY = XMVector3Cross(cameraAxisZ, cameraAxisX);
+	cameraAxisY = XMVector3Normalize(cameraAxisY);
+	//カメラ回転行列
+	XMMATRIX matCameraRot;
+	//カメラ座標系→ワールド座標系の返還行列
+	matCameraRot.r[0] = cameraAxisX;
+	matCameraRot.r[1] = cameraAxisY;
+	matCameraRot.r[2] = cameraAxisZ;
+	matCameraRot.r[3] = XMVectorSet(0,0,0,1);
+	//転置により逆用列（逆回転）を計算
+	matView = XMMatrixTranspose(matCameraRot);
+	//視点座標に-1を賭けた座標
+	XMVECTOR reverseEyePosition = XMVectorNegate(eyePosition);
+	//カメラの位置からワールド原点へのベクトル（カメラ座標系）
+	XMVECTOR tX = XMVector3Dot({ 0,1,1 }, reverseEyePosition);
+	XMVECTOR tY = XMVector3Dot({ 1,0,1 }, reverseEyePosition);
+	XMVECTOR tZ = XMVector3Dot({ 1,1,0 }, reverseEyePosition);
+	//一つのベクトルにまとめる
+	XMVECTOR translation = XMVectorSet(tX.m128_f32[0], tY.m128_f32[1], tZ.m128_f32[2], 1.0f);
+	//ビュー行列に平行移動成分を設定
+	matView.r[3] = translation;
+
+	// ビュー行列の更新
+	matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+
 }
 
 bool Object3d::Initialize()
