@@ -5,6 +5,25 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <d3dx12.h>
+#include <forward_list>
+
+struct Particle
+{
+	//DirectX::を省略
+	using XMFLOAT3 = DirectX::XMFLOAT3;
+
+	//座標
+	XMFLOAT3 position = {};
+	//速度
+	XMFLOAT3 velocity = {};
+	//加速度
+	XMFLOAT3 aceel = {};
+	//現在フレーム
+	int frame = 0;
+	//終了フレーム
+	int num_frame = 0;
+
+};
 
 /// <summary>
 /// 3Dオブジェクト
@@ -40,7 +59,7 @@ private: // 定数
 	static const float radius;				// 底面の半径
 	static const float prizmHeight;			// 柱の高さ
 	static const int planeCount = division * 2 + division * 2;		// 面の数
-	static const int vertexCount = 1/*planeCount * 3*/;		// 頂点数
+	static const int vertexCount = 1024/*planeCount * 3*/;		// 頂点数
 
 public: // 静的メンバ関数
 	/// <summary>
@@ -201,6 +220,14 @@ public: // メンバ関数
 	/// <param name="position">座標</param>
 	//void SetPosition(const XMFLOAT3& position) { this->position = position; }
 
+	/// <summary>
+	/// パーティクルの追加
+	/// </summary>
+	/// <param name="life">生存時間</param>
+	/// <param name="position">初期座標</param>
+	/// <param name="velocity">速度</param>
+	/// <param name="accel">加速度</param>
+	void Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel);
 private: // メンバ変数
 	ComPtr<ID3D12Resource> constBuff; // 定数バッファ
 	// 色
@@ -215,5 +242,12 @@ private: // メンバ変数
 	//XMMATRIX matWorld;
 	// 親オブジェクト
 	//ParticleManager* parent = nullptr;
+
+	//パーティクル配列
+	std::forward_list<Particle> particles;
+
+	
+
 };
 
+const DirectX::XMFLOAT3 operator+(const DirectX::XMFLOAT3& lhs, const DirectX::XMFLOAT3& rhs);

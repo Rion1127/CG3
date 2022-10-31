@@ -29,12 +29,35 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// テクスチャ読み込み
 	Sprite::LoadTexture(1, L"Resources/background.png");
+	Sprite::LoadTexture(2, L"Resources/particle.png");
 
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	// 3Dオブジェクト生成
 	particleMan = ParticleManager::Create();
 	particleMan->Update();
+
+	for (int i = 0; i < 100; i++) {
+		//XYZすべて[-5.0f,+5.0f]でランダムに分布
+		const float md_pos = 10.0f;
+		XMFLOAT3 pos{};
+		pos.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		pos.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		pos.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		//XYZすべて[-5.0f,+5.0f]でランダムに分布
+		const float md_ve = 0.1f;
+		XMFLOAT3 vel{};
+		vel.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		vel.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		vel.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		//重力に見立ててYのみ[-0.001f,0]でランダムに分布
+		XMFLOAT3 acc{};
+		const float md_acc = 0.001f;
+		acc.y = -(float)rand() / RAND_MAX * md_acc;
+
+		//追加
+		particleMan->Add(60, pos, vel, acc);
+	}
 }
 
 void GameScene::Update()
@@ -63,7 +86,33 @@ void GameScene::Update()
 		if (input->PushKey(DIK_D)) { ParticleManager::CameraMoveEyeVector({ +0.2f,0.0f,0.0f }); }
 		else if (input->PushKey(DIK_A)) { ParticleManager::CameraMoveEyeVector({ -0.2f,0.0f,0.0f }); }
 	}
+	//パーティクルを生成
+	if (particleCT > 0)particleCT--;
 
+	//if (particleCT <= 0) {
+		for (int i = 0; i < 100; i++) {
+			//XYZすべて[-5.0f,+5.0f]でランダムに分布
+			const float md_pos = 10.0f;
+			XMFLOAT3 pos{};
+			pos.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			pos.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			pos.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			//XYZすべて[-5.0f,+5.0f]でランダムに分布
+			const float md_ve = 0.1f;
+			XMFLOAT3 vel{};
+			vel.x = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			vel.y = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			vel.z = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			//重力に見立ててYのみ[-0.001f,0]でランダムに分布
+			XMFLOAT3 acc{};
+			const float md_acc = 0.001f;
+			acc.y = -(float)rand() / RAND_MAX * md_acc;
+
+			//追加
+			particleMan->Add(60, pos, vel, acc);
+		}
+		particleCT = MaxParticleCT;
+	//}
 	particleMan->Update();
 }
 

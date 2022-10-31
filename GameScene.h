@@ -61,5 +61,7 @@ private: // メンバ変数
 	/// </summary>
 	Sprite* spriteBG = nullptr;
 	ParticleManager* particleMan = nullptr;
+	const int MaxParticleCT = 180;
+	int particleCT = MaxParticleCT;
 };
 
