@@ -19,21 +19,21 @@ ComPtr<ID3D12RootSignature> Object3d::rootsignature;
 ComPtr<ID3D12PipelineState> Object3d::pipelinestate;
 ComPtr<ID3D12DescriptorHeap> Object3d::descHeap;
 ComPtr<ID3D12Resource> Object3d::vertBuff;
-ComPtr<ID3D12Resource> Object3d::indexBuff;
+//ComPtr<ID3D12Resource> Object3d::indexBuff;
 ComPtr<ID3D12Resource> Object3d::texbuff;
 CD3DX12_CPU_DESCRIPTOR_HANDLE Object3d::cpuDescHandleSRV;
 CD3DX12_GPU_DESCRIPTOR_HANDLE Object3d::gpuDescHandleSRV;
 XMMATRIX Object3d::matView{};
 XMMATRIX Object3d::matProjection{};
-XMFLOAT3 Object3d::eye = { 0, 0, -50.0f };
+XMFLOAT3 Object3d::eye = { 0, 0, -5.0f };
 XMFLOAT3 Object3d::target = { 0, 0, 0 };
 XMFLOAT3 Object3d::up = { 0, 1, 0 };
 D3D12_VERTEX_BUFFER_VIEW Object3d::vbView{};
-D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
-Object3d::VertexPosNormalUv Object3d::vertices[vertexCount];
-unsigned short Object3d::indices[planeCount * 3];
-XMMATRIX Object3d::matBillboard = XMMatrixIdentity();
-XMMATRIX Object3d::matBillboardY = XMMatrixIdentity();
+//D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
+Object3d::VertexPos Object3d::vertices[vertexCount];
+//unsigned short Object3d::indices[planeCount * 3];
+//XMMATRIX Object3d::matBillboard = XMMatrixIdentity();
+//XMMATRIX Object3d::matBillboardY = XMMatrixIdentity();
 
 void Object3d::StaticInitialize(ID3D12Device * device, int window_width, int window_height)
 {
@@ -72,7 +72,7 @@ void Object3d::PreDraw(ID3D12GraphicsCommandList * cmdList)
 	// ルートシグネチャの設定
 	cmdList->SetGraphicsRootSignature(rootsignature.Get());
 	// プリミティブ形状を設定
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 }
 
 void Object3d::PostDraw()
@@ -265,16 +265,16 @@ void Object3d::InitializeGraphicsPipeline()
 			D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		},
-		{ // 法線ベクトル(1行で書いたほうが見やすい)
-			"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-			D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		},
-		{ // uv座標(1行で書いたほうが見やすい)
-			"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-			D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		},
+		//{ // 法線ベクトル(1行で書いたほうが見やすい)
+		//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+		//	D3D12_APPEND_ALIGNED_ELEMENT,
+		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+		//},
+		//{ // uv座標(1行で書いたほうが見やすい)
+		//	"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+		//	D3D12_APPEND_ALIGNED_ELEMENT,
+		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+		//},
 	};
 
 	// グラフィックスパイプラインの流れを設定
@@ -315,7 +315,7 @@ void Object3d::InitializeGraphicsPipeline()
 	gpipeline.InputLayout.NumElements = _countof(inputLayout);
 
 	// 図形の形状設定（三角形）
-	gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 
 	gpipeline.NumRenderTargets = 1;	// 描画対象は1つ
 	gpipeline.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 0～255指定のRGBA
@@ -428,21 +428,18 @@ void Object3d::CreateModel()
 {
 	HRESULT result = S_FALSE;
 
-	VertexPosNormalUv verticesSquare[] = {
-		{{ -5.0f,-5.0f,0.0f},{0,0,1},{0,1}},
-		{{ -5.0f,+5.0f,0.0f},{0,0,1},{0,0}},
-		{{ +5.0f,-5.0f,0.0f},{0,0,1},{1,1}},
-		{{ +5.0f,+5.0f,0.0f},{0,0,1},{1,0}},
+	VertexPos verticesPoint[] = {
+		{{ 0.0f,0.0f,0.0f}/*,{0,0,1},{0,1}*/}
 	};
 
-	std::copy(std::begin(verticesSquare), std::end(verticesSquare), vertices);
+	std::copy(std::begin(verticesPoint), std::end(verticesPoint), vertices);
 
 	unsigned short indicesSquare[] = {
 		0,1,2,
 		2,1,3
 	};
 
-	std::copy(std::begin(indicesSquare), std::end(indicesSquare), indices);
+	//std::copy(std::begin(indicesSquare), std::end(indicesSquare), indices);
 
 	//std::vector<VertexPosNormalUv> realVertices;
 	//// 頂点座標の計算（重複あり）
@@ -539,29 +536,29 @@ void Object3d::CreateModel()
 	//	}
 	//}
 
-	// 法線方向の計算
-	for (int i = 0; i < _countof(indices) / 3; i++)
-	{// 三角形１つごとに計算していく
-		// 三角形のインデックスを取得
-		unsigned short index0 = indices[i * 3 + 0];
-		unsigned short index1 = indices[i * 3 + 1];
-		unsigned short index2 = indices[i * 3 + 2];
-		// 三角形を構成する頂点座標をベクトルに代入
-		XMVECTOR p0 = XMLoadFloat3(&vertices[index0].pos);
-		XMVECTOR p1 = XMLoadFloat3(&vertices[index1].pos);
-		XMVECTOR p2 = XMLoadFloat3(&vertices[index2].pos);
-		// p0→p1ベクトル、p0→p2ベクトルを計算
-		XMVECTOR v1 = XMVectorSubtract(p1, p0);
-		XMVECTOR v2 = XMVectorSubtract(p2, p0);
-		// 外積は両方から垂直なベクトル
-		XMVECTOR normal = XMVector3Cross(v1, v2);
-		// 正規化（長さを1にする)
-		normal = XMVector3Normalize(normal);
-		// 求めた法線を頂点データに代入
-		XMStoreFloat3(&vertices[index0].normal, normal);
-		XMStoreFloat3(&vertices[index1].normal, normal);
-		XMStoreFloat3(&vertices[index2].normal, normal);
-	}
+	//// 法線方向の計算
+	//for (int i = 0; i < _countof(indices) / 3; i++)
+	//{// 三角形１つごとに計算していく
+	//	// 三角形のインデックスを取得
+	//	unsigned short index0 = indices[i * 3 + 0];
+	//	unsigned short index1 = indices[i * 3 + 1];
+	//	unsigned short index2 = indices[i * 3 + 2];
+	//	// 三角形を構成する頂点座標をベクトルに代入
+	//	XMVECTOR p0 = XMLoadFloat3(&vertices[index0].pos);
+	//	XMVECTOR p1 = XMLoadFloat3(&vertices[index1].pos);
+	//	XMVECTOR p2 = XMLoadFloat3(&vertices[index2].pos);
+	//	// p0→p1ベクトル、p0→p2ベクトルを計算
+	//	XMVECTOR v1 = XMVectorSubtract(p1, p0);
+	//	XMVECTOR v2 = XMVectorSubtract(p2, p0);
+	//	// 外積は両方から垂直なベクトル
+	//	XMVECTOR normal = XMVector3Cross(v1, v2);
+	//	// 正規化（長さを1にする)
+	//	normal = XMVector3Normalize(normal);
+	//	// 求めた法線を頂点データに代入
+	//	XMStoreFloat3(&vertices[index0].normal, normal);
+	//	XMStoreFloat3(&vertices[index1].normal, normal);
+	//	XMStoreFloat3(&vertices[index2].normal, normal);
+	//}
 
 	UINT sizeVB = static_cast<UINT>(sizeof(vertices));
 
@@ -577,7 +574,7 @@ void Object3d::CreateModel()
 	assert(SUCCEEDED(result));
 
 	// 頂点バッファへのデータ転送
-	VertexPosNormalUv* vertMap = nullptr;
+	VertexPos* vertMap = nullptr;
 	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
 	if (SUCCEEDED(result)) {
 		memcpy(vertMap, vertices, sizeof(vertices));
@@ -589,33 +586,33 @@ void Object3d::CreateModel()
 	vbView.SizeInBytes = sizeof(vertices);
 	vbView.StrideInBytes = sizeof(vertices[0]);
 
-	UINT sizeIB = static_cast<UINT>(sizeof(indices));
-	// リソース設定
-	resourceDesc.Width = sizeIB;
+	//UINT sizeIB = static_cast<UINT>(sizeof(indices));
+	//// リソース設定
+	//resourceDesc.Width = sizeIB;
 
-	// インデックスバッファ生成
-	result = device->CreateCommittedResource(
-		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&indexBuff));
+	//// インデックスバッファ生成
+	//result = device->CreateCommittedResource(
+	//	&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+	//	IID_PPV_ARGS(&indexBuff));
 
-	// インデックスバッファへのデータ転送
-	unsigned short* indexMap = nullptr;
-	result = indexBuff->Map(0, nullptr, (void**)&indexMap);
-	if (SUCCEEDED(result)) {
+	//// インデックスバッファへのデータ転送
+	//unsigned short* indexMap = nullptr;
+	//result = indexBuff->Map(0, nullptr, (void**)&indexMap);
+	//if (SUCCEEDED(result)) {
 
-		// 全インデックスに対して
-		for (int i = 0; i < _countof(indices); i++)
-		{
-			indexMap[i] = indices[i];	// インデックスをコピー
-		}
+	//	// 全インデックスに対して
+	//	for (int i = 0; i < _countof(indices); i++)
+	//	{
+	//		indexMap[i] = indices[i];	// インデックスをコピー
+	//	}
 
-		indexBuff->Unmap(0, nullptr);
-	}
+	//	indexBuff->Unmap(0, nullptr);
+	//}
 
-	// インデックスバッファビューの作成
-	ibView.BufferLocation = indexBuff->GetGPUVirtualAddress();
-	ibView.Format = DXGI_FORMAT_R16_UINT;
-	ibView.SizeInBytes = sizeof(indices);
+	//// インデックスバッファビューの作成
+	//ibView.BufferLocation = indexBuff->GetGPUVirtualAddress();
+	//ibView.Format = DXGI_FORMAT_R16_UINT;
+	//ibView.SizeInBytes = sizeof(indices);
 }
 
 void Object3d::UpdateViewMatrix()
@@ -668,27 +665,27 @@ void Object3d::UpdateViewMatrix()
 	//ビュー行列に平行移動成分を設定
 	matView.r[3] = translation;
 
-	//全方向ビルボード行列
-	matBillboard.r[0] = cameraAxisX;
-	matBillboard.r[1] = cameraAxisY;
-	matBillboard.r[2] = cameraAxisZ;
-	matBillboard.r[3] = XMVectorSet(0,0,0,1);
+	////全方向ビルボード行列
+	//matBillboard.r[0] = cameraAxisX;
+	//matBillboard.r[1] = cameraAxisY;
+	//matBillboard.r[2] = cameraAxisZ;
+	//matBillboard.r[3] = XMVectorSet(0,0,0,1);
 
-	//Y軸周りビルボード行列
-	//カメラXYZ軸
-	XMVECTOR ybillCameraAxisX, ybillCameraAxisY, ybillCameraAxisZ;
-	//X軸は共通
-	ybillCameraAxisX = cameraAxisX;
-	//Y軸はワールド座標系のY軸
-	ybillCameraAxisY = XMVector3Normalize(upVector);
-	//Z軸はX軸→Y軸の外積で求まる
-	ybillCameraAxisZ = XMVector3Cross(cameraAxisX, cameraAxisY);
+	////Y軸周りビルボード行列
+	////カメラXYZ軸
+	//XMVECTOR ybillCameraAxisX, ybillCameraAxisY, ybillCameraAxisZ;
+	////X軸は共通
+	//ybillCameraAxisX = cameraAxisX;
+	////Y軸はワールド座標系のY軸
+	//ybillCameraAxisY = XMVector3Normalize(upVector);
+	////Z軸はX軸→Y軸の外積で求まる
+	//ybillCameraAxisZ = XMVector3Cross(cameraAxisX, cameraAxisY);
 
-	//Y軸回りビルボード行列
-	matBillboardY.r[0] = ybillCameraAxisX;
-	matBillboardY.r[1] = ybillCameraAxisY;
-	matBillboardY.r[2] = ybillCameraAxisZ;
-	matBillboardY.r[3] = XMVectorSet(0, 0, 0, 1);
+	////Y軸回りビルボード行列
+	//matBillboardY.r[0] = ybillCameraAxisX;
+	//matBillboardY.r[1] = ybillCameraAxisY;
+	//matBillboardY.r[2] = ybillCameraAxisZ;
+	//matBillboardY.r[3] = XMVectorSet(0, 0, 0, 1);
 }
 
 bool Object3d::Initialize()
@@ -730,12 +727,10 @@ void Object3d::Update()
 	// ワールド行列の合成
 	matWorld = XMMatrixIdentity(); // 変形をリセット
 
-	
-
 	matWorld *= matScale; // ワールド行列にスケーリングを反映
 	matWorld *= matRot; // ワールド行列に回転を反映
 
-	matWorld *= matBillboardY;//ビルボード行列を掛ける
+	//matWorld *= matBillboardY;//ビルボード行列を掛ける
 
 	matWorld *= matTrans; // ワールド行列に平行移動を反映
 
@@ -748,8 +743,9 @@ void Object3d::Update()
 	// 定数バッファへデータ転送
 	ConstBufferData* constMap = nullptr;
 	result = constBuff->Map(0, nullptr, (void**)&constMap);
-	constMap->color = color;
-	constMap->mat = matWorld * matView * matProjection;	// 行列の合成
+	//constMap->color = color;
+	//constMap->mat = matWorld * matView * matProjection;	// 行列の合成
+	constMap->mat = matView * matProjection;	// 行列の合成
 	constBuff->Unmap(0, nullptr);
 
 
@@ -764,7 +760,7 @@ void Object3d::Draw()
 	// 頂点バッファの設定
 	cmdList->IASetVertexBuffers(0, 1, &vbView);
 	// インデックスバッファの設定
-	cmdList->IASetIndexBuffer(&ibView);
+	//cmdList->IASetIndexBuffer(&ibView);
 
 	// デスクリプタヒープの配列
 	ID3D12DescriptorHeap* ppHeaps[] = { descHeap.Get() };
@@ -776,4 +772,6 @@ void Object3d::Draw()
 	cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);
 	// 描画コマンド
 	cmdList->DrawIndexedInstanced(/*_countof(indices)*/3, 1, 0, 0, 0);
+	cmdList->DrawInstanced(_countof(vertices), 1, 0, 0);
+
 }
