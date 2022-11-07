@@ -56,7 +56,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		acc.y = -(float)rand() / RAND_MAX * md_acc;
 
 		//追加
-		particleMan->Add(60, pos, vel, acc);
+		particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f);
 	}
 }
 
@@ -89,7 +89,7 @@ void GameScene::Update()
 	//パーティクルを生成
 	if (particleCT > 0)particleCT--;
 
-	//if (particleCT <= 0) {
+	if (particleCT <= 0) {
 		for (int i = 0; i < 100; i++) {
 			//XYZすべて[-5.0f,+5.0f]でランダムに分布
 			const float md_pos = 10.0f;
@@ -109,10 +109,10 @@ void GameScene::Update()
 			acc.y = -(float)rand() / RAND_MAX * md_acc;
 
 			//追加
-			particleMan->Add(60, pos, vel, acc);
+			particleMan->Add(60, pos, vel, acc,1.0f,0.0f);
 		}
 		particleCT = MaxParticleCT;
-	//}
+	}
 	particleMan->Update();
 }
 

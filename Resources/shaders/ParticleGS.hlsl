@@ -32,6 +32,10 @@ void main(
     {
         //中心からのオフセットをビルボード回転（モデル座標）
         float4 offset = mul(matBillboard, offset_array[i]);
+        //中心からのオフセットをスケーリング
+        offset = offset_array[i] * input[0].scale;
+        //中心からのオフセットをビルボード回転
+        offset = mul(matBillboard, offset);
         //ワールド座標ベースで、ずらす
         element.svpos = input[0].pos + offset;
         //ビュー、射影変換

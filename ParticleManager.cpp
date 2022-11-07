@@ -270,11 +270,11 @@ void ParticleManager::InitializeGraphicsPipeline()
 		//	D3D12_APPEND_ALIGNED_ELEMENT,
 		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		//},
-		//{ // uv座標(1行で書いたほうが見やすい)
-		//	"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-		//	D3D12_APPEND_ALIGNED_ELEMENT,
-		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		//},
+		{ // uv座標(1行で書いたほうが見やすい)
+			"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+		},
 	};
 
 	// グラフィックスパイプラインの流れを設定
@@ -748,6 +748,11 @@ void ParticleManager::Update()
 		it->velocity = it->velocity + it->aceel;
 		//速度による移動
 		it->position = it->position + it->velocity;
+		//進行度を0~1の範囲に換算
+		float f = (float)it->num_frame / it->frame;
+		//スケールの線形補間
+		it->scale = (it->e_scale - it->s_scale) / f;
+		it->scale += it->s_scale;
 	};
 
 	//頂点バッファへデータ送信
@@ -760,6 +765,8 @@ void ParticleManager::Update()
 			it++) {
 			//座標
 			vertMap->pos = it->position;
+			//スケール
+			vertMap->scale = it->scale;
 			//次の頂点へ
 			vertMap++;
 		}
@@ -801,7 +808,8 @@ void ParticleManager::Draw()
 
 }
 
-void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel)
+void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel,
+	float start_scale, float end_scale)
 {
 	//リストに要素を追加
 	particles.emplace_front();
@@ -812,6 +820,9 @@ void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOA
 	p.velocity = velocity;
 	p.aceel = accel;
 	p.num_frame = life;
+	p.s_scale = start_scale;
+	p.e_scale = end_scale;
+	p.scale = start_scale;
 }
 
 const DirectX::XMFLOAT3 operator+(const DirectX::XMFLOAT3& lhs, const DirectX::XMFLOAT3& rhs)
