@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "Sprite.h"
 #include "ParticleManager.h"
+#include "ParticleManager2.h"
 #include "DebugText.h"
 
 /// <summary>
@@ -61,6 +62,9 @@ private: // メンバ変数
 	/// </summary>
 	Sprite* spriteBG = nullptr;
 	ParticleManager* particleMan = nullptr;
+
+	ParticleManager2* particleMan2 = nullptr;
+
 	const int MaxParticleCT = 10;
 	int particleCT = MaxParticleCT;
 };

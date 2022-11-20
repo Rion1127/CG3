@@ -37,6 +37,9 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	particleMan = ParticleManager::Create();
 	particleMan->Update();
 
+	particleMan2 = ParticleManager2::Create();
+	particleMan2->Update();
+
 	for (int i = 0; i < 100; i++) {
 		//XYZすべて[-5.0f,+5.0f]でランダムに分布
 		const float md_pos = 10.0f;
@@ -65,6 +68,35 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		//追加
 		particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
 	}
+
+	for (int i = 0; i < 100; i++) {
+		//XYZすべて[-5.0f,+5.0f]でランダムに分布
+		const float md_pos = 10.0f;
+		XMFLOAT3 pos{};
+		pos.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		pos.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		pos.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		//XYZすべて[-5.0f,+5.0f]でランダムに分布
+		const float md_ve = 0.1f;
+		XMFLOAT3 vel{};
+		vel.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		vel.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		vel.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+		//重力に見立ててYのみ[-0.001f,0]でランダムに分布
+		XMFLOAT3 acc{};
+		const float md_acc = 0.001f;
+		acc.y = -(float)rand() / RAND_MAX * md_acc;
+
+		XMFLOAT4 color{};
+		const float md_color = 0.5f;
+		color.x = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.y = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.z = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.w = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		//color = { 1,1,1,1 };
+		//追加
+		particleMan2->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
+	}
 }
 
 void GameScene::Update()
@@ -92,6 +124,11 @@ void GameScene::Update()
 		else if (input->PushKey(DIK_S)) { ParticleManager::CameraMoveEyeVector({ 0.0f,-0.2f,0.0f }); }
 		if (input->PushKey(DIK_D)) { ParticleManager::CameraMoveEyeVector({ +0.2f,0.0f,0.0f }); }
 		else if (input->PushKey(DIK_A)) { ParticleManager::CameraMoveEyeVector({ -0.2f,0.0f,0.0f }); }
+
+		if (input->PushKey(DIK_W)) { ParticleManager2::CameraMoveEyeVector({ 0.0f,+0.2f,0.0f }); }
+		else if (input->PushKey(DIK_S)) { ParticleManager2::CameraMoveEyeVector({ 0.0f,-0.2f,0.0f }); }
+		if (input->PushKey(DIK_D)) { ParticleManager2::CameraMoveEyeVector({ +0.2f,0.0f,0.0f }); }
+		else if (input->PushKey(DIK_A)) { ParticleManager2::CameraMoveEyeVector({ -0.2f,0.0f,0.0f }); }
 	}
 	//パーティクルを生成
 	if (particleCT > 0)particleCT--;
@@ -99,9 +136,9 @@ void GameScene::Update()
 	if (particleCT <= 0) {
 		for (int i = 0; i < 100; i++) {
 			//XYZすべて[-5.0f,+5.0f]でランダムに分布
-			const float md_pos = 10.0f;
+			const float md_pos = 5.0f;
 			XMFLOAT3 pos{};
-			pos.x = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			pos.x = 5 + (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
 			pos.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
 			pos.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
 			//XYZすべて[-5.0f,+5.0f]でランダムに分布
@@ -126,9 +163,39 @@ void GameScene::Update()
 			//追加
 			particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
 		}
+		for (int i = 0; i < 100; i++) {
+			//XYZすべて[-5.0f,+5.0f]でランダムに分布
+			const float md_pos = 5.0f;
+			XMFLOAT3 pos{};
+			pos.x = -5 +(float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			pos.y = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			pos.z = (float)rand() / RAND_MAX * md_pos - md_pos / 2.0f;
+			//XYZすべて[-5.0f,+5.0f]でランダムに分布
+			const float md_ve = 0.1f;
+			XMFLOAT3 vel{};
+			vel.x = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			vel.y = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			vel.z = (float)rand() / RAND_MAX * md_ve - md_ve / 2.0f;
+			//重力に見立ててYのみ[-0.001f,0]でランダムに分布
+			XMFLOAT3 acc{};
+			const float md_acc = 0.001f;
+			acc.y = -(float)rand() / RAND_MAX * md_acc;
+
+			XMFLOAT4 color{};
+			const float md_color = 0.5f;
+			color.x = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.y = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.z = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.w = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.w = 1.f;
+			//color = { 1,1,1,1 };
+			//追加
+			particleMan2->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
+		}
 		particleCT = MaxParticleCT;
 	}
 	particleMan->Update();
+	particleMan2->Update();
 }
 
 void GameScene::Draw()
@@ -155,9 +222,12 @@ void GameScene::Draw()
 #pragma region 3Dオブジェクト描画
 	// 3Dオブジェクト描画前処理
 	ParticleManager::PreDraw(cmdList);
+	ParticleManager2::PreDraw(cmdList);
+
 
 	// 3Dオブクジェクトの描画
 	particleMan->Draw();
+	particleMan2->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
@@ -165,6 +235,7 @@ void GameScene::Draw()
 
 	// 3Dオブジェクト描画後処理
 	ParticleManager::PostDraw();
+	ParticleManager2::PostDraw();
 #pragma endregion
 
 #pragma region 前景スプライト描画
