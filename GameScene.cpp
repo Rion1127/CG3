@@ -55,8 +55,15 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		const float md_acc = 0.001f;
 		acc.y = -(float)rand() / RAND_MAX * md_acc;
 
+		XMFLOAT4 color{};
+		const float md_color = 0.5f;
+		color.x = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.y = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.z = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		color.w = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+		//color = { 1,1,1,1 };
 		//追加
-		particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f);
+		particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
 	}
 }
 
@@ -108,8 +115,16 @@ void GameScene::Update()
 			const float md_acc = 0.001f;
 			acc.y = -(float)rand() / RAND_MAX * md_acc;
 
+			XMFLOAT4 color{};
+			const float md_color = 0.5f;
+			color.x = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.y = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.z = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.w = (float)rand() / RAND_MAX * md_color - md_color / 2.0f + 0.5f;
+			color.w = 1.f;
+			//color = { 1,1,1,1 };
 			//追加
-			particleMan->Add(60, pos, vel, acc,1.0f,0.0f);
+			particleMan->Add(60, pos, vel, acc, 1.0f, 0.0f, color);
 		}
 		particleCT = MaxParticleCT;
 	}

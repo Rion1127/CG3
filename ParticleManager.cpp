@@ -265,13 +265,13 @@ void ParticleManager::InitializeGraphicsPipeline()
 			D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		},
-		//{ // 法線ベクトル(1行で書いたほうが見やすい)
-		//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-		//	D3D12_APPEND_ALIGNED_ELEMENT,
-		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		//},
 		{ // uv座標(1行で書いたほうが見やすい)
-			"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+			"TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+		},
+		{ // 色
+			"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
 			D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		},
@@ -369,7 +369,7 @@ void ParticleManager::LoadTexture()
 	ScratchImage scratchImg{};
 
 	// WICテクスチャのロード
-	result = LoadFromWICFile( L"Resources/particle.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	result = LoadFromWICFile( L"Resources/particle2.png", WIC_FLAGS_NONE, &metadata, scratchImg);
 	assert(SUCCEEDED(result));
 
 	ScratchImage mipChain{};
@@ -753,6 +753,11 @@ void ParticleManager::Update()
 		//スケールの線形補間
 		it->scale = (it->e_scale - it->s_scale) / f;
 		it->scale += it->s_scale;
+
+		/*float t = (float)it->frame / it->num_frame;
+		float t2 = 1.0f - t;
+
+		it->color_ = { 1 ,t2 ,t2 ,1 };*/
 	};
 
 	//頂点バッファへデータ送信
@@ -767,6 +772,8 @@ void ParticleManager::Update()
 			vertMap->pos = it->position;
 			//スケール
 			vertMap->scale = it->scale;
+			vertMap->color = it->color_;
+
 			//次の頂点へ
 			vertMap++;
 		}
@@ -809,7 +816,7 @@ void ParticleManager::Draw()
 }
 
 void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel,
-	float start_scale, float end_scale)
+	float start_scale, float end_scale, XMFLOAT4 color)
 {
 	//リストに要素を追加
 	particles.emplace_front();
@@ -823,6 +830,7 @@ void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOA
 	p.s_scale = start_scale;
 	p.e_scale = end_scale;
 	p.scale = start_scale;
+	p.color_ = color;
 }
 
 const DirectX::XMFLOAT3 operator+(const DirectX::XMFLOAT3& lhs, const DirectX::XMFLOAT3& rhs)
